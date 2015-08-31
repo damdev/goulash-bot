@@ -1,0 +1,10 @@
+cron:
+- description: check for messages
+  url: /cron/check_for_messages
+  schedule: every 1 minutes
+- description: check for goulash
+  url: /cron/check_for_goulash
+  schedule: every 10 minutes
+- description: reset goulash flag
+  url: /cron/reset_goulash_flag
+  schedule: every 24 hours
