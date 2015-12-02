@@ -105,7 +105,7 @@ class GoulashBot:
 
     def goulash(self):
         response = requests.get('http://latropilla.platosdeldia.com/modules.php?name=PDD&func=nick&nick=latropilla')
-        return response.text.find('Goulash c/speztels') != -1
+        return (response.text.find('oulash') != -1) or (response.text.find('spaetzle') != -1)
 
     # Correr una vez al dia
     def reset_goulash_flag(self):
