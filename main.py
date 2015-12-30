@@ -1,11 +1,14 @@
 from flask import Flask
 from telegram import Bot
 import requests
+import re
 
 from google.appengine.api import urlfetch
+
 urlfetch.set_default_fetch_deadline(60)
 
 from google.appengine.ext import ndb
+
 
 class NbdGoulashBotStore(ndb.Model):
     last_update_id = ndb.IntegerProperty()
@@ -31,7 +34,8 @@ class NbdGoulashBotStore(ndb.Model):
         if single:
             return single
         else:
-            return NbdGoulashBotStore(last_update_id = 0, users = {})
+            return NbdGoulashBotStore(last_update_id=0, users={})
+
 
 class NbdGoulashFound(ndb.Model):
     found = ndb.BooleanProperty()
@@ -49,11 +53,10 @@ class NbdGoulashFound(ndb.Model):
         if single:
             return single
         else:
-            return NbdGoulashFound(found = False)
+            return NbdGoulashFound(found=False)
 
 
 class GoulashBot:
-
     def __init__(self, token):
         self.store = NbdGoulashBotStore.get()
         self.last_update_id = 0
@@ -66,7 +69,7 @@ class GoulashBot:
     def load_data(self):
         self.last_update_id = self.store.read_last_update_id()
         self.users = self.store.read_users()
-        
+
     def add_user(self, user, chat_id):
         if user not in self.users.keys():
             self.store.add_user(user, chat_id)
@@ -92,23 +95,25 @@ class GoulashBot:
 
     def goulash(self):
         response = requests.get('http://latropilla.platosdeldia.com/modules.php?name=PDD&func=nick&nick=latropilla')
-        return (response.text.find('ulash') != -1) or (response.text.find('spaetzle') != -1) or (response.text.find('speciale') != -1)
+        body = response.text
+        m = re.search(r'([^<>]*(ulash|spaetzle|speciale)[^<>]*)', body)
+        return m.group(1) if m else None
 
     # Correr una vez al dia
     def reset_goulash_flag(self):
         self.goulash_found.save_found(False)
 
-    def goulash_alert(self):
+    def goulash_alert(self, found):
         for user in self.users.keys():
-            self.bot.sendMessage(chat_id=self.users[user], text=("HAY GOULASH!!!!"))
+            self.bot.sendMessage(chat_id=self.users[user], text=("HAY %s!!!!" % found))
 
     # Correr periodicamente
     def check_for_goulash(self):
         if not self.goulash_found.read_found():
-            self.goulash_found.save_found(self.goulash())
-            if self.goulash_found.read_found():
-                self.goulash_alert()
-
+            found = self.goulash()
+            self.goulash_found.save_found(found is not None)
+            if found:
+                self.goulash_alert(found)
 
 
 app = Flask(__name__)
@@ -117,20 +122,24 @@ app.config['DEBUG'] = True
 goulash_bot = GoulashBot('***REMOVED***')
 goulash_bot.load_data()
 
+
 @app.route('/cron/check_for_messages')
 def check_for_messages():
     goulash_bot.check_for_messages()
     return str(goulash_bot.users)
+
 
 @app.route('/cron/check_for_goulash')
 def check_for_goulash():
     goulash_bot.check_for_goulash()
     return "Goulash found" if goulash_bot.goulash_found else "Goulash not found"
 
+
 @app.route('/cron/reset_goulash_flag')
 def reset_goulash_flag():
     goulash_bot.reset_goulash_flag()
     return 'Reseted.'
+
 
 @app.errorhandler(404)
 def page_not_found(e):
