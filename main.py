@@ -28,6 +28,10 @@ class NbdGoulashBotStore(ndb.Model):
         self.users[user_id] = chat_id
         self.put()
 
+    def remove_user(self, user_id, chat_id):
+        del self.users[user_id]
+        self.put()
+
     @classmethod
     def get(cls):
         single = cls.query().get()
@@ -78,13 +82,30 @@ class GoulashBot:
         else:
             self.bot.sendMessage(chat_id=chat_id, text=("Ya estabas registrado"))
 
+    def remove_user(self, user, chat_id):
+        if user not in self.users.keys():
+            self.bot.sendMessage(chat_id=chat_id, text=("No estabas registrado"))
+        else:
+            self.store.remove_user(user, chat_id)
+            del self.users[user]
+            self.bot.sendMessage(chat_id=chat_id, text=("Ya no recibirás notificaciones"))
+
+    def unknown_command(self, user, chat_id):
+        self.bot.sendSticker(chat_id=chat_id, sticker='104205188025286920')
+
     def process_message(self, update):
         chat_id = update.message.chat_id
         message = update.message.text
         username = str(update.message.from_user.id)
 
-        if (message):
-            self.add_user(username, chat_id)
+        if message:
+            if message.startswith('/subscribe'):
+                self.add_user(username, chat_id)
+            elif message.startswith('/unsubscribe'):
+                self.remove_user(username, chat_id)
+            else:
+                self.unknown_command(username, chat_id)
+
         self.last_update_id = update.update_id + 1
         self.store.save_last_update_id(self.last_update_id)
 
