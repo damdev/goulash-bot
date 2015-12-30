@@ -91,7 +91,7 @@ class GoulashBot:
             self.bot.sendMessage(chat_id=chat_id, text=("Ya no recibirás notificaciones"))
 
     def unknown_command(self, user, chat_id):
-        self.bot.sendSticker(chat_id=chat_id, sticker='104205188025286920')
+        self.bot.sendMessage(chat_id=chat_id, text='unknown command')
 
     def process_message(self, update):
         chat_id = update.message.chat_id
