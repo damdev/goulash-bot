@@ -33,37 +33,24 @@ class NbdGoulashBotStore(ndb.Model):
         else:
             return NbdGoulashBotStore(last_update_id = 0, users = {})
 
+class NbdGoulashFound(ndb.Model):
+    found = ndb.BooleanProperty()
 
-class GoulashBotStore:
-    def read_last_update_id(self):
-        return requests.get('https://goulash.firebaseio.com/last_update_id.json').json()
+    def read_found(self):
+        return self.found
 
-    def save_last_update_id(self, update_id):
-        requests.put('https://goulash.firebaseio.com/last_update_id.json', data=str(update_id))
+    def save_found(self, found):
+        self.found = found
+        self.put()
 
-    def read_users(self):
-        return requests.get('https://goulash.firebaseio.com/users.json').json()
+    @classmethod
+    def get(cls):
+        single = cls.query().get()
+        if single:
+            return single
+        else:
+            return NbdGoulashFound(found = False)
 
-    def add_user(self, user_id, chat_id):
-        requests.put("https://goulash.firebaseio.com/users/%s.json" % user_id, data=str(chat_id))
-
-
-class DummyGoulashBotStore:
-    def __init__(self):
-        self.users = {}
-        self.last_update_id = 0
-
-    def read_last_update_id(self):
-        return self.last_update_id
-
-    def save_last_update_id(self, update_id):
-        self.last_update_id = update_id
-
-    def read_users(self):
-        return self.users
-
-    def add_user(self, user_id, chat_id):
-        self.users[user_id] = chat_id
 
 class GoulashBot:
 
@@ -72,7 +59,7 @@ class GoulashBot:
         self.last_update_id = 0
         self.users = {}
         self.bot = Bot(token)
-        self.goulash_found = False
+        self.goulash_found = NbdGoulashFound.get()
         for update in self.bot.getUpdates():
             self.process_message(update)
 
@@ -109,7 +96,7 @@ class GoulashBot:
 
     # Correr una vez al dia
     def reset_goulash_flag(self):
-        self.goulash_found = False
+        self.goulash_found.save_found(False)
 
     def goulash_alert(self):
         for user in self.users.keys():
@@ -117,9 +104,9 @@ class GoulashBot:
 
     # Correr periodicamente
     def check_for_goulash(self):
-        if not self.goulash_found:
-            self.goulash_found = self.goulash()
-            if self.goulash_found:
+        if not self.goulash_found.read_found():
+            self.goulash_found.save_found(self.goulash())
+            if self.goulash_found.read_found():
                 self.goulash_alert()
 
 
