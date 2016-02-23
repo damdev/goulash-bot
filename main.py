@@ -117,8 +117,8 @@ class GoulashBot:
     def goulash(self):
         response = requests.get('http://latropilla.platosdeldia.com/modules.php?name=PDD&func=nick&nick=latropilla')
         body = response.text
-        m = re.search(r'([^<>]*(ulash|spaetzle|speciale)[^<>]*)', body)
-        return m.group(1) if m else None
+        m = re.search(r'([^<>]*(ulash|spaetzle|speciale)[^<>]*)[^$]*(\$[.0-9]*)', body)
+        return (m.group(1), m.group(3)) if m else None
 
     # Correr una vez al dia
     def reset_goulash_flag(self):
@@ -126,7 +126,7 @@ class GoulashBot:
 
     def goulash_alert(self, found):
         for user in self.users.keys():
-            self.bot.sendMessage(chat_id=self.users[user], text=("HAY %s!!!!" % found))
+            self.bot.sendMessage(chat_id=self.users[user], text=("HAY %s (%s)!!!!" % found))
 
     # Correr periodicamente
     def check_for_goulash(self):
