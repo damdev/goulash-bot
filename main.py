@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from flask import Flask
 from telegram import Bot
 import requests
@@ -131,7 +133,7 @@ class GoulashBot:
 
     def goulash_alert(self, found):
         for user in self.users.keys():
-            self.bot.sendMessage(chat_id=self.users[user], text=("HAY %s (%s) [temp: %s°]!!!!" % found))
+            self.bot.sendMessage(chat_id=self.users[user], text=("HAY %s (%s) [temp: %sC]!!!!" % found))
 
     # Correr periodicamente
     def check_for_goulash(self):
