@@ -76,12 +76,12 @@ class NbdGoulashFound(ndb.Model):
 
 
 class GoulashBot:
-    def __init__(self, token):
+    def __init__(self):
         self.configuration = NbdConfiguration.get()
         self.store = NbdGoulashBotStore.get()
         self.last_update_id = 0
         self.users = {}
-        self.bot = Bot(token)
+        self.bot = Bot(self.configuration.telegram_apikey)
         self.goulash_found = NbdGoulashFound.get()
         for update in self.bot.getUpdates():
             self.process_message(update)
