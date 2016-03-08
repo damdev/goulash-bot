@@ -11,6 +11,19 @@ urlfetch.set_default_fetch_deadline(60)
 
 from google.appengine.ext import ndb
 
+class NbdConfiguration(ndb.Model):
+    temperature_apikey = ndb.StringProperty()
+    telegram_apikey = ndb.StringProperty()
+    
+    @classmethod
+    def get(cls):
+        single = cls.query().get()
+        if single:
+            return single
+        else:
+            None
+
+        
 
 class NbdGoulashBotStore(ndb.Model):
     last_update_id = ndb.IntegerProperty()
@@ -64,6 +77,7 @@ class NbdGoulashFound(ndb.Model):
 
 class GoulashBot:
     def __init__(self, token):
+        self.configuration = NbdConfiguration.get()
         self.store = NbdGoulashBotStore.get()
         self.last_update_id = 0
         self.users = {}
@@ -73,7 +87,7 @@ class GoulashBot:
             self.process_message(update)
 
     def temperature(self):
-        response = requests.get('http://api.openweathermap.org/data/2.5/weather?id=3435910&units=metric&APPID=***REMOVED***').json()
+        response = requests.get("http://api.openweathermap.org/data/2.5/weather?id=3435910&units=metric&APPID=%s" % self.configuration.temperature_apikey).json()
         temps = response['main']
         return temps['temp']
 
@@ -147,7 +161,7 @@ class GoulashBot:
 app = Flask(__name__)
 app.config['DEBUG'] = True
 
-goulash_bot = GoulashBot('***REMOVED***')
+goulash_bot = GoulashBot()
 goulash_bot.load_data()
 
 
