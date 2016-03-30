@@ -151,7 +151,7 @@ class GoulashBot:
 
     # Correr periodicamente
     def check_for_goulash(self):
-        if not self.goulash_found.read_found():
+        if not NbdGoulashFound.get().read_found():
             found = self.goulash()
             self.goulash_found.save_found(found is not None)
             if found:
