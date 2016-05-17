@@ -154,7 +154,7 @@ class GoulashBot:
         return "HAY %s (%s) [temp: %sC]!!!!" % found
 
     def ifttt(self, found):
-        requests.post("https://maker.ifttt.com/trigger/goulash/with/key/%s" % self.configuration.ifttt_key, data={'value1': self.build_message(found)})
+        requests.post("http://maker.ifttt.com/trigger/goulash/with/key/%s" % self.configuration.ifttt_key, data={'value1': self.build_message(found)})
 
     # Correr periodicamente
     def check_for_goulash(self):
