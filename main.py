@@ -14,6 +14,7 @@ from google.appengine.ext import ndb
 class NbdConfiguration(ndb.Model):
     temperature_apikey = ndb.StringProperty()
     telegram_apikey = ndb.StringProperty()
+    ifttt_key = ndb.StringProperty()
     
     @classmethod
     def get(cls):
