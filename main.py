@@ -147,7 +147,13 @@ class GoulashBot:
 
     def goulash_alert(self, found):
         for user in self.users.keys():
-            self.bot.sendMessage(chat_id=self.users[user], text=("HAY %s (%s) [temp: %sC]!!!!" % found))
+            self.bot.sendMessage(chat_id=self.users[user], text=self.build_message(found))
+
+    def build_message(self, found):
+        return "HAY %s (%s) [temp: %sC]!!!!" % found
+
+    def ifttt(self, found):
+        requests.post("https://maker.ifttt.com/trigger/goulash/with/key/%s" % self.configuration.ifttt_key, data={value1: self.build_message(found)})
 
     # Correr periodicamente
     def check_for_goulash(self):
@@ -155,6 +161,7 @@ class GoulashBot:
             found = self.goulash()
             self.goulash_found.save_found(found is not None)
             if found:
+                self.ifttt(found)
                 self.goulash_alert(found)
 
 
